@@ -7,7 +7,7 @@ See documentation in docs/topics/request-response.rst
 from __future__ import annotations
 
 import xmlrpc.client as xmlrpclib
-from typing import Any, Optional
+from typing import Any
 
 from scrapy.http.request import Request
 from scrapy.utils.python import get_func_args
