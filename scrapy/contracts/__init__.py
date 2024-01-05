@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import re
 import sys
 from functools import wraps
 from inspect import getmembers
 from types import CoroutineType
-from typing import AsyncGenerator, Dict, Optional, Type
+from typing import AsyncGenerator
 from unittest import TestCase
 
 from scrapy.http import Request
@@ -14,7 +16,7 @@ from scrapy.utils.spider import iterate_spider_output
 class Contract:
     """Abstract class for contracts"""
 
-    request_cls: Optional[Type[Request]] = None
+    request_cls: type[Request] | None = None
 
     def __init__(self, method, *args):
         self.testcase_pre = _create_testcase(method, f"@{self.name} pre-hook")
@@ -81,7 +83,7 @@ class Contract:
 
 
 class ContractsManager:
-    contracts: Dict[str, Contract] = {}
+    contracts: dict[str, Contract] = {}
 
     def __init__(self, contracts):
         for contract in contracts:

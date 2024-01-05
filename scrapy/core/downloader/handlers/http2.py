@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from time import time
-from typing import Optional, Type, TypeVar
+from typing import TypeVar
 from urllib.parse import urldefrag
 
 from twisted.internet.base import DelayedCall
@@ -22,7 +24,7 @@ H2DownloadHandlerOrSubclass = TypeVar(
 
 
 class H2DownloadHandler:
-    def __init__(self, settings: Settings, crawler: Optional[Crawler] = None):
+    def __init__(self, settings: Settings, crawler: Crawler | None = None):
         self._crawler = crawler
 
         from twisted.internet import reactor
@@ -32,7 +34,7 @@ class H2DownloadHandler:
 
     @classmethod
     def from_crawler(
-        cls: Type[H2DownloadHandlerOrSubclass], crawler: Crawler
+        cls: type[H2DownloadHandlerOrSubclass], crawler: Crawler
     ) -> H2DownloadHandlerOrSubclass:
         return cls(crawler.settings, crawler)
 
@@ -57,8 +59,8 @@ class ScrapyH2Agent:
         context_factory,
         pool: H2ConnectionPool,
         connect_timeout: int = 10,
-        bind_address: Optional[bytes] = None,
-        crawler: Optional[Crawler] = None,
+        bind_address: bytes | None = None,
+        crawler: Crawler | None = None,
     ) -> None:
         self._context_factory = context_factory
         self._connect_timeout = connect_timeout
@@ -66,7 +68,7 @@ class ScrapyH2Agent:
         self._pool = pool
         self._crawler = crawler
 
-    def _get_agent(self, request: Request, timeout: Optional[float]) -> H2Agent:
+    def _get_agent(self, request: Request, timeout: float | None) -> H2Agent:
         from twisted.internet import reactor
 
         bind_address = request.meta.get("bindaddress") or self._bind_address

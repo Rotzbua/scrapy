@@ -4,7 +4,9 @@ Module for processing Sitemaps.
 Note: The main purpose of this module is to provide support for the
 SitemapSpider, its API is subject to change without notice.
 """
-from typing import Any, Dict, Generator, Iterator, Optional
+from __future__ import annotations
+
+from typing import Any, Generator, Iterator
 from urllib.parse import urljoin
 
 import lxml.etree
@@ -22,9 +24,9 @@ class Sitemap:
         rt = self._root.tag
         self.type = self._root.tag.split("}", 1)[1] if "}" in rt else rt
 
-    def __iter__(self) -> Iterator[Dict[str, Any]]:
+    def __iter__(self) -> Iterator[dict[str, Any]]:
         for elem in self._root.getchildren():
-            d: Dict[str, Any] = {}
+            d: dict[str, Any] = {}
             for el in elem.getchildren():
                 tag = el.tag
                 name = tag.split("}", 1)[1] if "}" in tag else tag
@@ -40,7 +42,7 @@ class Sitemap:
 
 
 def sitemap_urls_from_robots(
-    robots_text: str, base_url: Optional[str] = None
+    robots_text: str, base_url: str | None = None
 ) -> Generator[str, Any, None]:
     """Return an iterator over all sitemap urls contained in the given
     robots.txt file

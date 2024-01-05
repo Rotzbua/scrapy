@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import os
 import shutil
 import string
 from importlib import import_module
 from pathlib import Path
-from typing import Optional, cast
+from typing import cast
 from urllib.parse import urlparse
 
 import scrapy
@@ -144,7 +146,7 @@ class Command(ScrapyCommand):
         if spiders_module:
             print(f"in module:\n  {spiders_module.__name__}.{module}")
 
-    def _find_template(self, template: str) -> Optional[Path]:
+    def _find_template(self, template: str) -> Path | None:
         template_file = Path(self.templates_dir, f"{template}.tmpl")
         if template_file.exists():
             return template_file

@@ -3,6 +3,8 @@ Files Pipeline
 
 See documentation in topics/media-pipeline.rst
 """
+from __future__ import annotations
+
 import base64
 import functools
 import hashlib
@@ -15,7 +17,7 @@ from ftplib import FTP
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
-from typing import DefaultDict, Optional, Set, Union
+from typing import DefaultDict
 from urllib.parse import urlparse
 
 from itemadapter import ItemAdapter
@@ -37,7 +39,7 @@ from scrapy.utils.request import referer_str
 logger = logging.getLogger(__name__)
 
 
-def _to_string(path: Union[str, PathLike]) -> str:
+def _to_string(path: str | PathLike) -> str:
     return str(path)  # convert a Path object to string
 
 
@@ -46,22 +48,20 @@ class FileException(Exception):
 
 
 class FSFilesStore:
-    def __init__(self, basedir: Union[str, PathLike]):
+    def __init__(self, basedir: str | PathLike):
         basedir = _to_string(basedir)
         if "://" in basedir:
             basedir = basedir.split("://", 1)[1]
         self.basedir = basedir
         self._mkdir(Path(self.basedir))
-        self.created_directories: DefaultDict[str, Set[str]] = defaultdict(set)
+        self.created_directories: DefaultDict[str, set[str]] = defaultdict(set)
 
-    def persist_file(
-        self, path: Union[str, PathLike], buf, info, meta=None, headers=None
-    ):
+    def persist_file(self, path: str | PathLike, buf, info, meta=None, headers=None):
         absolute_path = self._get_filesystem_path(path)
         self._mkdir(absolute_path.parent, info)
         absolute_path.write_bytes(buf.getvalue())
 
-    def stat_file(self, path: Union[str, PathLike], info):
+    def stat_file(self, path: str | PathLike, info):
         absolute_path = self._get_filesystem_path(path)
         try:
             last_modified = absolute_path.stat().st_mtime
@@ -73,11 +73,11 @@ class FSFilesStore:
 
         return {"last_modified": last_modified, "checksum": checksum}
 
-    def _get_filesystem_path(self, path: Union[str, PathLike]) -> Path:
+    def _get_filesystem_path(self, path: str | PathLike) -> Path:
         path_comps = _to_string(path).split("/")
         return Path(self.basedir, *path_comps)
 
-    def _mkdir(self, dirname: Path, domain: Optional[str] = None):
+    def _mkdir(self, dirname: Path, domain: str | None = None):
         seen = self.created_directories[domain] if domain else set()
         if str(dirname) not in seen:
             if not dirname.exists():
@@ -339,9 +339,7 @@ class FilesPipeline(MediaPipeline):
     DEFAULT_FILES_URLS_FIELD = "file_urls"
     DEFAULT_FILES_RESULT_FIELD = "files"
 
-    def __init__(
-        self, store_uri: Union[str, PathLike], download_func=None, settings=None
-    ):
+    def __init__(self, store_uri: str | PathLike, download_func=None, settings=None):
         store_uri = _to_string(store_uri)
         if not store_uri:
             raise NotConfigured

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import logging
 from enum import Enum
 from io import BytesIO
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from h2.errors import ErrorCodes
@@ -87,7 +89,7 @@ class Stream:
         self,
         stream_id: int,
         request: Request,
-        protocol: "H2ClientProtocol",
+        protocol: H2ClientProtocol,
         download_maxsize: int = 0,
         download_warnsize: int = 0,
     ) -> None:
@@ -99,7 +101,7 @@ class Stream:
         """
         self.stream_id: int = stream_id
         self._request: Request = request
-        self._protocol: "H2ClientProtocol" = protocol
+        self._protocol: H2ClientProtocol = protocol
 
         self._download_maxsize = self._request.meta.get(
             "download_maxsize", download_maxsize
@@ -110,7 +112,7 @@ class Stream:
 
         # Metadata of an HTTP/2 connection stream
         # initialized when stream is instantiated
-        self.metadata: Dict = {
+        self.metadata: dict = {
             "request_content_length": 0
             if self._request.body is None
             else len(self._request.body),
@@ -131,7 +133,7 @@ class Stream:
         # Private variable used to build the response
         # this response is then converted to appropriate Response class
         # passed to the response deferred callback
-        self._response: Dict = {
+        self._response: dict = {
             # Data received frame by frame from the server is appended
             # and passed to the response Deferred when completely received.
             "body": BytesIO(),
@@ -193,7 +195,7 @@ class Stream:
             == f'{self._protocol.metadata["ip_address"]}:{self._protocol.metadata["uri"].port}'
         )
 
-    def _get_request_headers(self) -> List[Tuple[str, str]]:
+    def _get_request_headers(self) -> list[tuple[str, str]]:
         url = urlparse(self._request.url)
 
         path = url.path
@@ -346,7 +348,7 @@ class Stream:
             self._response["flow_controlled_size"], self.stream_id
         )
 
-    def receive_headers(self, headers: List[HeaderTuple]) -> None:
+    def receive_headers(self, headers: list[HeaderTuple]) -> None:
         for name, value in headers:
             self._response["headers"].appendlist(name, value)
 
@@ -379,7 +381,7 @@ class Stream:
     def close(
         self,
         reason: StreamCloseReason,
-        errors: Optional[List[BaseException]] = None,
+        errors: list[BaseException] | None = None,
         from_protocol: bool = False,
     ) -> None:
         """Based on the reason sent we will handle each case."""
