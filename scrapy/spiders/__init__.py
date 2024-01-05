@@ -6,7 +6,7 @@ See documentation in docs/topics/spiders.rst
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Iterable, Union, cast
 
 from twisted.internet.defer import Deferred
 
@@ -29,16 +29,16 @@ class Spider(object_ref):
     """
 
     name: str
-    custom_settings: Optional[dict] = None
+    custom_settings: dict | None = None
 
-    def __init__(self, name: Optional[str] = None, **kwargs: Any):
+    def __init__(self, name: str | None = None, **kwargs: Any):
         if name is not None:
             self.name = name
         elif not getattr(self, "name", None):
             raise ValueError(f"{type(self).__name__} must have a name")
         self.__dict__.update(kwargs)
         if not hasattr(self, "start_urls"):
-            self.start_urls: List[str] = []
+            self.start_urls: list[str] = []
 
     @property
     def logger(self) -> logging.LoggerAdapter:
@@ -92,7 +92,7 @@ class Spider(object_ref):
         return url_is_from_spider(request.url, cls)
 
     @staticmethod
-    def close(spider: Spider, reason: str) -> Union[Deferred, None]:
+    def close(spider: Spider, reason: str) -> Deferred | None:
         closed = getattr(spider, "closed", None)
         if callable(closed):
             return cast(Union[Deferred, None], closed(reason))

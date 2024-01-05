@@ -6,7 +6,7 @@ See documentation in docs/topics/spider-middleware.rst
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, Iterable
 
 from scrapy import Spider
 from scrapy.crawler import Crawler
@@ -36,7 +36,7 @@ class HttpErrorMiddleware:
 
     def __init__(self, settings: BaseSettings):
         self.handle_httpstatus_all: bool = settings.getbool("HTTPERROR_ALLOW_ALL")
-        self.handle_httpstatus_list: List[int] = settings.getlist(
+        self.handle_httpstatus_list: list[int] = settings.getlist(
             "HTTPERROR_ALLOWED_CODES"
         )
 
@@ -60,7 +60,7 @@ class HttpErrorMiddleware:
 
     def process_spider_exception(
         self, response: Response, exception: Exception, spider: Spider
-    ) -> Optional[Iterable[Any]]:
+    ) -> Iterable[Any] | None:
         if isinstance(exception, HttpError):
             assert spider.crawler.stats
             spider.crawler.stats.inc_value("httperror/response_ignored_count")

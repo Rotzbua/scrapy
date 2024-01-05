@@ -3,19 +3,7 @@ from __future__ import annotations
 import logging
 import pprint
 from collections import defaultdict, deque
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Deque,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Callable, Deque, Iterable, cast
 
 from twisted.internet.defer import Deferred
 
@@ -44,20 +32,18 @@ class MiddlewareManager:
         self.middlewares = middlewares
         # Only process_spider_output and process_spider_exception can be None.
         # Only process_spider_output can be a tuple, and only until _async compatibility methods are removed.
-        self.methods: Dict[
-            str, Deque[Union[None, Callable, Tuple[Callable, Callable]]]
+        self.methods: dict[
+            str, Deque[None | Callable | tuple[Callable, Callable]]
         ] = defaultdict(deque)
         for mw in middlewares:
             self._add_middleware(mw)
 
     @classmethod
-    def _get_mwlist_from_settings(cls, settings: Settings) -> List[Any]:
+    def _get_mwlist_from_settings(cls, settings: Settings) -> list[Any]:
         raise NotImplementedError
 
     @classmethod
-    def from_settings(
-        cls, settings: Settings, crawler: Optional[Crawler] = None
-    ) -> Self:
+    def from_settings(cls, settings: Settings, crawler: Crawler | None = None) -> Self:
         mwlist = cls._get_mwlist_from_settings(settings)
         middlewares = []
         enabled = []

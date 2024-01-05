@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 from twisted.python.failure import Failure
 
@@ -82,9 +82,7 @@ class LogFormatter:
             },
         }
 
-    def scraped(
-        self, item: Any, response: Union[Response, Failure], spider: Spider
-    ) -> dict:
+    def scraped(self, item: Any, response: Response | Failure, spider: Spider) -> dict:
         """Logs a message when an item is scraped by a spider."""
         src: Any
         if isinstance(response, Failure):
@@ -133,7 +131,7 @@ class LogFormatter:
         self,
         failure: Failure,
         request: Request,
-        response: Union[Response, Failure],
+        response: Response | Failure,
         spider: Spider,
     ) -> dict:
         """Logs an error message from a spider.
@@ -154,14 +152,14 @@ class LogFormatter:
         failure: Failure,
         request: Request,
         spider: Spider,
-        errmsg: Optional[str] = None,
+        errmsg: str | None = None,
     ) -> dict:
         """Logs a download error message from a spider (typically coming from
         the engine).
 
         .. versionadded:: 2.0
         """
-        args: Dict[str, Any] = {"request": request}
+        args: dict[str, Any] = {"request": request}
         if errmsg:
             msg = DOWNLOADERRORMSG_LONG
             args["errmsg"] = errmsg

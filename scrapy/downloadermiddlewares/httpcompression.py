@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import io
 import zlib
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING
 
 from scrapy import Request, Spider
 from scrapy.crawler import Crawler
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     # typing.Self requires Python 3.11
     from typing_extensions import Self
 
-ACCEPTED_ENCODINGS: List[bytes] = [b"gzip", b"deflate"]
+ACCEPTED_ENCODINGS: list[bytes] = [b"gzip", b"deflate"]
 
 try:
     import brotli
@@ -37,7 +37,7 @@ class HttpCompressionMiddleware:
     """This middleware allows compressed (gzip, deflate) traffic to be
     sent/received from web sites"""
 
-    def __init__(self, stats: Optional[StatsCollector] = None):
+    def __init__(self, stats: StatsCollector | None = None):
         self.stats = stats
 
     @classmethod
@@ -48,13 +48,13 @@ class HttpCompressionMiddleware:
 
     def process_request(
         self, request: Request, spider: Spider
-    ) -> Union[Request, Response, None]:
+    ) -> Request | Response | None:
         request.headers.setdefault("Accept-Encoding", b", ".join(ACCEPTED_ENCODINGS))
         return None
 
     def process_response(
         self, request: Request, response: Response, spider: Spider
-    ) -> Union[Request, Response]:
+    ) -> Request | Response:
         if request.method == "HEAD":
             return response
         if isinstance(response, Response):

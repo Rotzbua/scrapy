@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import sys
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 from warnings import warn
 
 from scrapy.exceptions import ScrapyDeprecationWarning
@@ -53,7 +53,7 @@ class RobotParser(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def allowed(self, url: Union[str, bytes], user_agent: Union[str, bytes]) -> bool:
+    def allowed(self, url: str | bytes, user_agent: str | bytes) -> bool:
         """Return ``True`` if  ``user_agent`` is allowed to crawl ``url``, otherwise return ``False``.
 
         :param url: Absolute URL

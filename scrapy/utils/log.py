@@ -4,7 +4,7 @@ import logging
 import sys
 from logging.config import dictConfig
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 from twisted.python import log as twisted_log
 from twisted.python.failure import Failure
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 def failure_to_exc_info(
     failure: Failure,
-) -> Optional[Tuple[Type[BaseException], BaseException, Optional[TracebackType]]]:
+) -> tuple[type[BaseException], BaseException, TracebackType | None] | None:
     """Extract exc_info from Failure instances"""
     if isinstance(failure, Failure):
         assert failure.type
@@ -46,8 +46,8 @@ class TopLevelFormatter(logging.Filter):
     ``loggers`` list where it should act.
     """
 
-    def __init__(self, loggers: Optional[List[str]] = None):
-        self.loggers: List[str] = loggers or []
+    def __init__(self, loggers: list[str] | None = None):
+        self.loggers: list[str] = loggers or []
 
     def filter(self, record: logging.LogRecord) -> bool:
         if any(record.name.startswith(logger + ".") for logger in self.loggers):
@@ -76,7 +76,7 @@ DEFAULT_LOGGING = {
 
 
 def configure_logging(
-    settings: Union[Settings, dict, None] = None, install_root_handler: bool = True
+    settings: Settings | dict | None = None, install_root_handler: bool = True
 ) -> None:
     """
     Initialize logging defaults for Scrapy.
@@ -120,7 +120,7 @@ def configure_logging(
         install_scrapy_root_handler(settings)
 
 
-_scrapy_root_handler: Optional[logging.Handler] = None
+_scrapy_root_handler: logging.Handler | None = None
 
 
 def install_scrapy_root_handler(settings: Settings) -> None:
@@ -136,7 +136,7 @@ def install_scrapy_root_handler(settings: Settings) -> None:
     logging.root.addHandler(_scrapy_root_handler)
 
 
-def get_scrapy_root_handler() -> Optional[logging.Handler]:
+def get_scrapy_root_handler() -> logging.Handler | None:
     return _scrapy_root_handler
 
 
@@ -224,7 +224,7 @@ class LogCounterHandler(logging.Handler):
         self.crawler.stats.inc_value(sname)
 
 
-def logformatter_adapter(logkws: dict) -> Tuple[int, str, dict]:
+def logformatter_adapter(logkws: dict) -> tuple[int, str, dict]:
     """
     Helper that takes the dictionary output from the methods in LogFormatter
     and adapts it into a tuple of positional arguments for logger.log calls,

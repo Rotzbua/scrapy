@@ -4,7 +4,7 @@ import json
 import logging
 from abc import abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Type, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from twisted.internet.defer import Deferred
 
@@ -67,7 +67,7 @@ class BaseScheduler(metaclass=BaseSchedulerMeta):
         """
         return cls()
 
-    def open(self, spider: Spider) -> Optional[Deferred]:
+    def open(self, spider: Spider) -> Deferred | None:
         """
         Called when the spider is opened by the engine. It receives the spider
         instance as argument and it's useful to execute initialization code.
@@ -77,7 +77,7 @@ class BaseScheduler(metaclass=BaseSchedulerMeta):
         """
         pass
 
-    def close(self, reason: str) -> Optional[Deferred]:
+    def close(self, reason: str) -> Deferred | None:
         """
         Called when the spider is closed by the engine. It receives the reason why the crawl
         finished as argument and it's useful to execute cleaning code.
@@ -109,7 +109,7 @@ class BaseScheduler(metaclass=BaseSchedulerMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def next_request(self) -> Optional[Request]:
+    def next_request(self) -> Request | None:
         """
         Return the next :class:`~scrapy.http.Request` to be processed, or ``None``
         to indicate that there are no requests to be considered ready at the moment.
@@ -178,25 +178,25 @@ class Scheduler(BaseScheduler):
     def __init__(
         self,
         dupefilter: BaseDupeFilter,
-        jobdir: Optional[str] = None,
+        jobdir: str | None = None,
         dqclass=None,
         mqclass=None,
         logunser: bool = False,
-        stats: Optional[StatsCollector] = None,
+        stats: StatsCollector | None = None,
         pqclass=None,
-        crawler: Optional[Crawler] = None,
+        crawler: Crawler | None = None,
     ):
         self.df: BaseDupeFilter = dupefilter
-        self.dqdir: Optional[str] = self._dqdir(jobdir)
+        self.dqdir: str | None = self._dqdir(jobdir)
         self.pqclass = pqclass
         self.dqclass = dqclass
         self.mqclass = mqclass
         self.logunser: bool = logunser
-        self.stats: Optional[StatsCollector] = stats
-        self.crawler: Optional[Crawler] = crawler
+        self.stats: StatsCollector | None = stats
+        self.crawler: Crawler | None = crawler
 
     @classmethod
-    def from_crawler(cls: Type[SchedulerTV], crawler: Crawler) -> SchedulerTV:
+    def from_crawler(cls: type[SchedulerTV], crawler: Crawler) -> SchedulerTV:
         """
         Factory method, initializes the scheduler with arguments taken from the crawl settings
         """
@@ -215,7 +215,7 @@ class Scheduler(BaseScheduler):
     def has_pending_requests(self) -> bool:
         return len(self) > 0
 
-    def open(self, spider: Spider) -> Optional[Deferred]:
+    def open(self, spider: Spider) -> Deferred | None:
         """
         (1) initialize the memory queue
         (2) initialize the disk queue if the ``jobdir`` attribute is a valid directory
@@ -226,7 +226,7 @@ class Scheduler(BaseScheduler):
         self.dqs = self._dq() if self.dqdir else None
         return self.df.open()
 
-    def close(self, reason: str) -> Optional[Deferred]:
+    def close(self, reason: str) -> Deferred | None:
         """
         (1) dump pending requests to disk if there is a disk queue
         (2) return the result of the dupefilter's ``close`` method
@@ -260,7 +260,7 @@ class Scheduler(BaseScheduler):
         self.stats.inc_value("scheduler/enqueued", spider=self.spider)
         return True
 
-    def next_request(self) -> Optional[Request]:
+    def next_request(self) -> Request | None:
         """
         Return a :class:`~scrapy.http.Request` object from the memory queue,
         falling back to the disk queue if the memory queue is empty.
@@ -269,7 +269,7 @@ class Scheduler(BaseScheduler):
         Increment the appropriate stats, such as: ``scheduler/dequeued``,
         ``scheduler/dequeued/disk``, ``scheduler/dequeued/memory``.
         """
-        request: Optional[Request] = self.mqs.pop()
+        request: Request | None = self.mqs.pop()
         assert self.stats is not None
         if request is not None:
             self.stats.inc_value("scheduler/dequeued/memory", spider=self.spider)
@@ -315,7 +315,7 @@ class Scheduler(BaseScheduler):
     def _mqpush(self, request: Request) -> None:
         self.mqs.push(request)
 
-    def _dqpop(self) -> Optional[Request]:
+    def _dqpop(self) -> Request | None:
         if self.dqs is not None:
             return self.dqs.pop()
         return None
@@ -348,7 +348,7 @@ class Scheduler(BaseScheduler):
             )
         return q
 
-    def _dqdir(self, jobdir: Optional[str]) -> Optional[str]:
+    def _dqdir(self, jobdir: str | None) -> str | None:
         """Return a folder name to keep disk queue state at"""
         if jobdir:
             dqdir = Path(jobdir, "requests.queue")

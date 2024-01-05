@@ -3,16 +3,7 @@ from __future__ import annotations
 import logging
 from collections import defaultdict
 from http.cookiejar import Cookie
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    DefaultDict,
-    Dict,
-    Iterable,
-    Optional,
-    Sequence,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, DefaultDict, Iterable, Sequence
 
 from tldextract import TLDExtract
 
@@ -74,7 +65,7 @@ class CookiesMiddleware:
 
     def process_request(
         self, request: Request, spider: Spider
-    ) -> Union[Request, Response, None]:
+    ) -> Request | Response | None:
         if request.meta.get("dont_merge_cookies", False):
             return None
 
@@ -91,7 +82,7 @@ class CookiesMiddleware:
 
     def process_response(
         self, request: Request, response: Response, spider: Spider
-    ) -> Union[Request, Response]:
+    ) -> Request | Response:
         if request.meta.get("dont_merge_cookies", False):
             return response
 
@@ -127,7 +118,7 @@ class CookiesMiddleware:
                 msg = f"Received cookies from: {response}\n{cookies}"
                 logger.debug(msg, extra={"spider": spider})
 
-    def _format_cookie(self, cookie: Dict[str, Any], request: Request) -> Optional[str]:
+    def _format_cookie(self, cookie: dict[str, Any], request: Request) -> str | None:
         """
         Given a dict consisting of cookie components, return its string representation.
         Decode from bytes if necessary.
@@ -166,7 +157,7 @@ class CookiesMiddleware:
         """
         if not request.cookies:
             return []
-        cookies: Iterable[Dict[str, Any]]
+        cookies: Iterable[dict[str, Any]]
         if isinstance(request.cookies, dict):
             cookies = ({"name": k, "value": v} for k, v in request.cookies.items())
         else:
