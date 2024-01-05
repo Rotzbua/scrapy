@@ -30,5 +30,5 @@ repos:
         --keep-mock,
         --keep-percent-format,
         --keep-runtime-typing,
-        --py37-plus,
+        --py38-plus,
       ]
