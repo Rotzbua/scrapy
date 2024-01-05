@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numbers
 import os
 import sys
@@ -5,18 +7,7 @@ import warnings
 from configparser import ConfigParser
 from operator import itemgetter
 from pathlib import Path
-from typing import (
-    Any,
-    Callable,
-    Collection,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    MutableMapping,
-    Optional,
-    Union,
-)
+from typing import Any, Callable, Collection, Iterable, Mapping, MutableMapping
 
 from scrapy.exceptions import ScrapyDeprecationWarning, UsageError
 from scrapy.settings import BaseSettings
@@ -28,7 +19,7 @@ def build_component_list(
     compdict: MutableMapping[Any, Any],
     custom: Any = None,
     convert: Callable[[Any], Any] = update_classpath,
-) -> List[Any]:
+) -> list[Any]:
     """Compose a component list from a { class: order } dictionary."""
 
     def _check_components(complist: Collection[Any]) -> None:
@@ -38,7 +29,7 @@ def build_component_list(
                 "please update your settings"
             )
 
-    def _map_keys(compdict: Mapping[Any, Any]) -> Union[BaseSettings, Dict[Any, Any]]:
+    def _map_keys(compdict: Mapping[Any, Any]) -> BaseSettings | dict[Any, Any]:
         if isinstance(compdict, BaseSettings):
             compbs = BaseSettings()
             for k, v in compdict.items():
@@ -83,7 +74,7 @@ def build_component_list(
     return [k for k, v in sorted(compdict.items(), key=itemgetter(1))]
 
 
-def arglist_to_dict(arglist: List[str]) -> Dict[str, str]:
+def arglist_to_dict(arglist: list[str]) -> dict[str, str]:
     """Convert a list of arguments like ['arg1=val1', 'arg2=val2', ...] to a
     dict
     """
@@ -91,8 +82,8 @@ def arglist_to_dict(arglist: List[str]) -> Dict[str, str]:
 
 
 def closest_scrapy_cfg(
-    path: Union[str, os.PathLike] = ".",
-    prevpath: Optional[Union[str, os.PathLike]] = None,
+    path: str | os.PathLike = ".",
+    prevpath: str | os.PathLike | None = None,
 ) -> str:
     """Return the path to the closest scrapy.cfg file by traversing the current
     directory and its parents
@@ -129,7 +120,7 @@ def get_config(use_closest: bool = True) -> ConfigParser:
     return cfg
 
 
-def get_sources(use_closest: bool = True) -> List[str]:
+def get_sources(use_closest: bool = True) -> list[str]:
     xdg_config_home = (
         os.environ.get("XDG_CONFIG_HOME") or Path("~/.config").expanduser()
     )
@@ -145,8 +136,8 @@ def get_sources(use_closest: bool = True) -> List[str]:
 
 
 def feed_complete_default_values_from_settings(
-    feed: Dict[str, Any], settings: BaseSettings
-) -> Dict[str, Any]:
+    feed: dict[str, Any], settings: BaseSettings
+) -> dict[str, Any]:
     out = feed.copy()
     out.setdefault("batch_item_count", settings.getint("FEED_EXPORT_BATCH_ITEM_COUNT"))
     out.setdefault("encoding", settings["FEED_EXPORT_ENCODING"])
@@ -163,10 +154,10 @@ def feed_complete_default_values_from_settings(
 
 def feed_process_params_from_cli(
     settings: BaseSettings,
-    output: List[str],
-    output_format: Optional[str] = None,
-    overwrite_output: Optional[List[str]] = None,
-) -> Dict[str, Dict[str, Any]]:
+    output: list[str],
+    output_format: str | None = None,
+    overwrite_output: list[str] | None = None,
+) -> dict[str, dict[str, Any]]:
     """
     Receives feed export params (from the 'crawl' or 'runspider' commands),
     checks for inconsistencies in their quantities and returns a dictionary
@@ -222,7 +213,7 @@ def feed_process_params_from_cli(
             "URIs are specified"
         )
 
-    result: Dict[str, Dict[str, Any]] = {}
+    result: dict[str, dict[str, Any]] = {}
     for element in output:
         try:
             feed_uri, feed_format = element.rsplit(":", 1)

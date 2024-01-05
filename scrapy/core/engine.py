@@ -4,21 +4,11 @@ This is the Scrapy engine which controls the Scheduler, Downloader and Spider.
 For more information see docs/topics/architecture.rst
 
 """
+from __future__ import annotations
+
 import logging
 from time import time
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Generator,
-    Iterable,
-    Iterator,
-    Optional,
-    Set,
-    Type,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Callable, Generator, Iterable, Iterator, cast
 
 from twisted.internet.defer import Deferred, inlineCallbacks, succeed
 from twisted.internet.task import LoopingCall
@@ -50,14 +40,14 @@ class Slot:
         start_requests: Iterable[Request],
         close_if_idle: bool,
         nextcall: CallLaterOnce,
-        scheduler: "BaseScheduler",
+        scheduler: BaseScheduler,
     ) -> None:
-        self.closing: Optional[Deferred] = None
-        self.inprogress: Set[Request] = set()
-        self.start_requests: Optional[Iterator[Request]] = iter(start_requests)
+        self.closing: Deferred | None = None
+        self.inprogress: set[Request] = set()
+        self.start_requests: Iterator[Request] | None = iter(start_requests)
         self.close_if_idle: bool = close_if_idle
         self.nextcall: CallLaterOnce = nextcall
-        self.scheduler: "BaseScheduler" = scheduler
+        self.scheduler: BaseScheduler = scheduler
         self.heartbeat: LoopingCall = LoopingCall(nextcall.schedule)
 
     def add_request(self, request: Request) -> None:
@@ -82,29 +72,29 @@ class Slot:
 
 
 class ExecutionEngine:
-    def __init__(self, crawler: "Crawler", spider_closed_callback: Callable) -> None:
-        self.crawler: "Crawler" = crawler
+    def __init__(self, crawler: Crawler, spider_closed_callback: Callable) -> None:
+        self.crawler: Crawler = crawler
         self.settings: Settings = crawler.settings
         self.signals: SignalManager = crawler.signals
         assert crawler.logformatter
         self.logformatter: LogFormatter = crawler.logformatter
-        self.slot: Optional[Slot] = None
-        self.spider: Optional[Spider] = None
+        self.slot: Slot | None = None
+        self.spider: Spider | None = None
         self.running: bool = False
         self.paused: bool = False
-        self.scheduler_cls: Type["BaseScheduler"] = self._get_scheduler_class(
+        self.scheduler_cls: type[BaseScheduler] = self._get_scheduler_class(
             crawler.settings
         )
-        downloader_cls: Type[Downloader] = load_object(self.settings["DOWNLOADER"])
+        downloader_cls: type[Downloader] = load_object(self.settings["DOWNLOADER"])
         self.downloader: Downloader = downloader_cls(crawler)
         self.scraper = Scraper(crawler)
         self._spider_closed_callback: Callable = spider_closed_callback
-        self.start_time: Optional[float] = None
+        self.start_time: float | None = None
 
-    def _get_scheduler_class(self, settings: BaseSettings) -> Type["BaseScheduler"]:
+    def _get_scheduler_class(self, settings: BaseSettings) -> type[BaseScheduler]:
         from scrapy.core.scheduler import BaseScheduler
 
-        scheduler_cls: Type = load_object(settings["SCHEDULER"])
+        scheduler_cls: type = load_object(settings["SCHEDULER"])
         if not issubclass(scheduler_cls, BaseScheduler):
             raise TypeError(
                 f"The provided scheduler class ({settings['SCHEDULER']})"
@@ -204,7 +194,7 @@ class ExecutionEngine:
             or self.scraper.slot.needs_backout()
         )
 
-    def _next_request_from_scheduler(self) -> Optional[Deferred]:
+    def _next_request_from_scheduler(self) -> Deferred | None:
         assert self.slot is not None  # typing
         assert self.spider is not None  # typing
 
@@ -246,8 +236,8 @@ class ExecutionEngine:
         return d
 
     def _handle_downloader_output(
-        self, result: Union[Request, Response, Failure], request: Request
-    ) -> Optional[Deferred]:
+        self, result: Request | Response | Failure, request: Request
+    ) -> Deferred | None:
         assert self.spider is not None  # typing
 
         if not isinstance(result, (Request, Response, Failure)):
@@ -306,8 +296,8 @@ class ExecutionEngine:
         return self._download(request).addBoth(self._downloaded, request)
 
     def _downloaded(
-        self, result: Union[Response, Request, Failure], request: Request
-    ) -> Union[Deferred, Response, Failure]:
+        self, result: Response | Request | Failure, request: Request
+    ) -> Deferred | Response | Failure:
         assert self.slot is not None  # typing
         self.slot.remove_request(request)
         return self.download(result) if isinstance(result, Request) else result
@@ -317,7 +307,7 @@ class ExecutionEngine:
 
         self.slot.add_request(request)
 
-        def _on_success(result: Union[Response, Request]) -> Union[Response, Request]:
+        def _on_success(result: Response | Request) -> Response | Request:
             if not isinstance(result, (Response, Request)):
                 raise TypeError(
                     f"Incorrect type: expected Response or Request, got {type(result)}: {result!r}"

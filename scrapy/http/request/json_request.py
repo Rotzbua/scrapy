@@ -4,20 +4,21 @@ This module implements the JsonRequest class which is a more convenient class
 
 See documentation in docs/topics/request-response.rst
 """
+from __future__ import annotations
 
 import copy
 import json
 import warnings
-from typing import Any, Optional, Tuple
+from typing import Any
 
 from scrapy.http.request import Request
 
 
 class JsonRequest(Request):
-    attributes: Tuple[str, ...] = Request.attributes + ("dumps_kwargs",)
+    attributes: tuple[str, ...] = Request.attributes + ("dumps_kwargs",)
 
     def __init__(
-        self, *args: Any, dumps_kwargs: Optional[dict] = None, **kwargs: Any
+        self, *args: Any, dumps_kwargs: dict | None = None, **kwargs: Any
     ) -> None:
         dumps_kwargs = copy.deepcopy(dumps_kwargs) if dumps_kwargs is not None else {}
         dumps_kwargs.setdefault("sort_keys", True)

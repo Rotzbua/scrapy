@@ -1,6 +1,8 @@
 """
 This module contains essential stuff that should've come with Python itself ;)
 """
+from __future__ import annotations
+
 import collections.abc
 import gc
 import inspect
@@ -15,16 +17,11 @@ from typing import (
     AsyncIterable,
     AsyncIterator,
     Callable,
-    Dict,
     Generator,
     Iterable,
     Iterator,
-    List,
     Mapping,
-    Optional,
     Pattern,
-    Tuple,
-    Union,
     overload,
 )
 
@@ -57,8 +54,7 @@ def iflatten(x: Iterable) -> Iterable:
     Similar to ``.flatten()``, but returns iterator instead"""
     for el in x:
         if is_listlike(el):
-            for el_ in iflatten(el):
-                yield el_
+            yield from iflatten(el)
         else:
             yield el
 
@@ -101,7 +97,7 @@ def unique(list_: Iterable, key: Callable[[Any], Any] = lambda x: x) -> list:
 
 
 def to_unicode(
-    text: Union[str, bytes], encoding: Optional[str] = None, errors: str = "strict"
+    text: str | bytes, encoding: str | None = None, errors: str = "strict"
 ) -> str:
     """Return the unicode representation of a bytes object ``text``. If
     ``text`` is already an unicode object, return it as-is."""
@@ -118,7 +114,7 @@ def to_unicode(
 
 
 def to_bytes(
-    text: Union[str, bytes], encoding: Optional[str] = None, errors: str = "strict"
+    text: str | bytes, encoding: str | None = None, errors: str = "strict"
 ) -> bytes:
     """Return the binary representation of ``text``. If ``text``
     is already a bytes object, return it as-is."""
@@ -134,8 +130,8 @@ def to_bytes(
 
 
 def re_rsearch(
-    pattern: Union[str, Pattern], text: str, chunk_size: int = 1024
-) -> Optional[Tuple[int, int]]:
+    pattern: str | Pattern, text: str, chunk_size: int = 1024
+) -> tuple[int, int] | None:
     """
     This function does a reverse search in a text using a regular expression
     given in the attribute 'pattern'.
@@ -149,7 +145,7 @@ def re_rsearch(
     the start position of the match, and the ending (regarding the entire text).
     """
 
-    def _chunk_iter() -> Generator[Tuple[str, int], Any, None]:
+    def _chunk_iter() -> Generator[tuple[str, int], Any, None]:
         offset = len(text)
         while True:
             offset -= chunk_size * 1024
@@ -198,12 +194,12 @@ def binary_is_text(data: bytes) -> bool:
     return all(c not in _BINARYCHARS for c in data)
 
 
-def get_func_args(func: Callable, stripself: bool = False) -> List[str]:
+def get_func_args(func: Callable, stripself: bool = False) -> list[str]:
     """Return the argument name list of a callable object"""
     if not callable(func):
         raise TypeError(f"func must be callable, got '{type(func).__name__}'")
 
-    args: List[str] = []
+    args: list[str] = []
     try:
         sig = inspect.signature(func)
     except ValueError:
@@ -228,7 +224,7 @@ def get_func_args(func: Callable, stripself: bool = False) -> List[str]:
     return args
 
 
-def get_spec(func: Callable) -> Tuple[List[str], Dict[str, Any]]:
+def get_spec(func: Callable) -> tuple[list[str], dict[str, Any]]:
     """Returns (args, kwargs) tuple for a function
     >>> import re
     >>> get_spec(re.match)
@@ -257,7 +253,7 @@ def get_spec(func: Callable) -> Tuple[List[str], Dict[str, Any]]:
     else:
         raise TypeError(f"{type(func)} is not callable")
 
-    defaults: Tuple[Any, ...] = spec.defaults or ()
+    defaults: tuple[Any, ...] = spec.defaults or ()
 
     firstdefault = len(spec.args) - len(defaults)
     args = spec.args[:firstdefault]
@@ -266,7 +262,7 @@ def get_spec(func: Callable) -> Tuple[List[str], Dict[str, Any]]:
 
 
 def equal_attributes(
-    obj1: Any, obj2: Any, attributes: Optional[List[Union[str, Callable]]]
+    obj1: Any, obj2: Any, attributes: list[str | Callable] | None
 ) -> bool:
     """Compare two objects attributes"""
     # not attributes given return False by default
@@ -295,7 +291,7 @@ def without_none_values(iterable: Iterable) -> Iterable:
     ...
 
 
-def without_none_values(iterable: Union[Mapping, Iterable]) -> Union[dict, Iterable]:
+def without_none_values(iterable: Mapping | Iterable) -> dict | Iterable:
     """Return a copy of ``iterable`` with all ``None`` entries removed.
 
     If ``iterable`` is a mapping, return a dictionary where all pairs that have
@@ -350,7 +346,7 @@ class MutableChain(Iterable):
         return next(self.data)
 
 
-async def _async_chain(*iterables: Union[Iterable, AsyncIterable]) -> AsyncGenerator:
+async def _async_chain(*iterables: Iterable | AsyncIterable) -> AsyncGenerator:
     for it in iterables:
         async for o in as_async_generator(it):
             yield o
@@ -361,10 +357,10 @@ class MutableAsyncChain(AsyncIterable):
     Similar to MutableChain but for async iterables
     """
 
-    def __init__(self, *args: Union[Iterable, AsyncIterable]):
+    def __init__(self, *args: Iterable | AsyncIterable):
         self.data = _async_chain(*args)
 
-    def extend(self, *iterables: Union[Iterable, AsyncIterable]) -> None:
+    def extend(self, *iterables: Iterable | AsyncIterable) -> None:
         self.data = _async_chain(self.data, _async_chain(*iterables))
 
     def __aiter__(self) -> AsyncIterator:

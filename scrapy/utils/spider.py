@@ -10,10 +10,7 @@ from typing import (
     Generator,
     Iterable,
     Literal,
-    Optional,
-    Type,
     TypeVar,
-    Union,
     overload,
 )
 
@@ -48,7 +45,7 @@ def iterate_spider_output(result: _T) -> Iterable:
     ...
 
 
-def iterate_spider_output(result: Any) -> Union[Iterable, AsyncGenerator, Deferred]:
+def iterate_spider_output(result: Any) -> Iterable | AsyncGenerator | Deferred:
     if inspect.isasyncgen(result):
         return result
     if inspect.iscoroutine(result):
@@ -58,7 +55,7 @@ def iterate_spider_output(result: Any) -> Union[Iterable, AsyncGenerator, Deferr
     return arg_to_iter(deferred_from_coro(result))
 
 
-def iter_spider_classes(module: ModuleType) -> Generator[Type[Spider], Any, None]:
+def iter_spider_classes(module: ModuleType) -> Generator[type[Spider], Any, None]:
     """Return an iterator over all spider classes defined in the given module
     that can be instantiated (i.e. which have name)
     """
@@ -80,10 +77,10 @@ def iter_spider_classes(module: ModuleType) -> Generator[Type[Spider], Any, None
 def spidercls_for_request(
     spider_loader: SpiderLoader,
     request: Request,
-    default_spidercls: Type[Spider],
+    default_spidercls: type[Spider],
     log_none: bool = ...,
     log_multiple: bool = ...,
-) -> Type[Spider]:
+) -> type[Spider]:
     ...
 
 
@@ -94,7 +91,7 @@ def spidercls_for_request(
     default_spidercls: Literal[None],
     log_none: bool = ...,
     log_multiple: bool = ...,
-) -> Optional[Type[Spider]]:
+) -> type[Spider] | None:
     ...
 
 
@@ -105,17 +102,17 @@ def spidercls_for_request(
     *,
     log_none: bool = ...,
     log_multiple: bool = ...,
-) -> Optional[Type[Spider]]:
+) -> type[Spider] | None:
     ...
 
 
 def spidercls_for_request(
     spider_loader: SpiderLoader,
     request: Request,
-    default_spidercls: Optional[Type[Spider]] = None,
+    default_spidercls: type[Spider] | None = None,
     log_none: bool = False,
     log_multiple: bool = False,
-) -> Optional[Type[Spider]]:
+) -> type[Spider] | None:
     """Return a spider class that handles the given Request.
 
     This will look for the spiders that can handle the given request (using

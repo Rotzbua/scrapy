@@ -1,10 +1,12 @@
 """
 Base class for Scrapy commands
 """
+from __future__ import annotations
+
 import argparse
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from twisted.python import failure
 
@@ -15,10 +17,10 @@ from scrapy.utils.conf import arglist_to_dict, feed_process_params_from_cli
 
 class ScrapyCommand:
     requires_project = False
-    crawler_process: Optional[CrawlerProcess] = None
+    crawler_process: CrawlerProcess | None = None
 
     # default settings to be used for this command instead of global defaults
-    default_settings: Dict[str, Any] = {}
+    default_settings: dict[str, Any] = {}
 
     exitcode = 0
 
@@ -116,7 +118,7 @@ class ScrapyCommand:
         if opts.pdb:
             failure.startDebugMode()
 
-    def run(self, args: List[str], opts: argparse.Namespace) -> None:
+    def run(self, args: list[str], opts: argparse.Namespace) -> None:
         """
         Entry point for running commands
         """

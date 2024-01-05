@@ -5,7 +5,7 @@ See documentation in docs/topics/downloader-middleware.rst
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Tuple, Union
+from typing import TYPE_CHECKING, Iterable
 
 from scrapy import Request, Spider
 from scrapy.crawler import Crawler
@@ -18,8 +18,8 @@ if TYPE_CHECKING:
 
 
 class DefaultHeadersMiddleware:
-    def __init__(self, headers: Iterable[Tuple[str, str]]):
-        self._headers: Iterable[Tuple[str, str]] = headers
+    def __init__(self, headers: Iterable[tuple[str, str]]):
+        self._headers: Iterable[tuple[str, str]] = headers
 
     @classmethod
     def from_crawler(cls, crawler: Crawler) -> Self:
@@ -28,7 +28,7 @@ class DefaultHeadersMiddleware:
 
     def process_request(
         self, request: Request, spider: Spider
-    ) -> Union[Request, Response, None]:
+    ) -> Request | Response | None:
         for k, v in self._headers:
             request.headers.setdefault(k, v)
         return None

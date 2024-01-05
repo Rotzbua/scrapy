@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import asyncio
 import sys
 from asyncio import AbstractEventLoop, AbstractEventLoopPolicy
 from contextlib import suppress
-from typing import Any, Callable, Dict, Optional, Sequence, Type
+from typing import Any, Callable, Sequence
 from warnings import catch_warnings, filterwarnings, warn
 
 from twisted.internet import asyncioreactor, error
@@ -40,8 +42,8 @@ class CallLaterOnce:
     def __init__(self, func: Callable, *a: Any, **kw: Any):
         self._func: Callable = func
         self._a: Sequence[Any] = a
-        self._kw: Dict[str, Any] = kw
-        self._call: Optional[DelayedCall] = None
+        self._kw: dict[str, Any] = kw
+        self._call: DelayedCall | None = None
 
     def schedule(self, delay: float = 0) -> None:
         from twisted.internet import reactor
@@ -94,7 +96,7 @@ def _get_asyncio_event_loop_policy() -> AbstractEventLoopPolicy:
     return policy
 
 
-def install_reactor(reactor_path: str, event_loop_path: Optional[str] = None) -> None:
+def install_reactor(reactor_path: str, event_loop_path: str | None = None) -> None:
     """Installs the :mod:`~twisted.internet.reactor` with the specified
     import path. Also installs the asyncio event loop with the specified import
     path if the asyncio reactor is enabled"""
@@ -116,10 +118,10 @@ def _get_asyncio_event_loop() -> AbstractEventLoop:
     return set_asyncio_event_loop(None)
 
 
-def set_asyncio_event_loop(event_loop_path: Optional[str]) -> AbstractEventLoop:
+def set_asyncio_event_loop(event_loop_path: str | None) -> AbstractEventLoop:
     """Sets and returns the event loop with specified import path."""
     if event_loop_path is not None:
-        event_loop_class: Type[AbstractEventLoop] = load_object(event_loop_path)
+        event_loop_class: type[AbstractEventLoop] = load_object(event_loop_path)
         event_loop = event_loop_class()
         asyncio.set_event_loop(event_loop)
     else:

@@ -13,13 +13,9 @@ from typing import (
     Any,
     AnyStr,
     Callable,
-    Dict,
     Generator,
     Iterable,
-    List,
     Mapping,
-    Optional,
-    Tuple,
     Union,
     cast,
 )
@@ -51,16 +47,16 @@ class TextResponse(Response):
     _DEFAULT_ENCODING = "ascii"
     _cached_decoded_json = _NONE
 
-    attributes: Tuple[str, ...] = Response.attributes + ("encoding",)
+    attributes: tuple[str, ...] = Response.attributes + ("encoding",)
 
     def __init__(self, *args: Any, **kwargs: Any):
-        self._encoding: Optional[str] = kwargs.pop("encoding", None)
-        self._cached_benc: Optional[str] = None
-        self._cached_ubody: Optional[str] = None
-        self._cached_selector: Optional[Selector] = None
+        self._encoding: str | None = kwargs.pop("encoding", None)
+        self._cached_benc: str | None = None
+        self._cached_ubody: str | None = None
+        self._cached_selector: Selector | None = None
         super().__init__(*args, **kwargs)
 
-    def _set_body(self, body: Union[str, bytes, None]) -> None:
+    def _set_body(self, body: str | bytes | None) -> None:
         self._body: bytes = b""  # used by encoding detection
         if isinstance(body, str):
             if self._encoding is None:
@@ -76,7 +72,7 @@ class TextResponse(Response):
     def encoding(self) -> str:
         return self._declared_encoding() or self._body_inferred_encoding()
 
-    def _declared_encoding(self) -> Optional[str]:
+    def _declared_encoding(self) -> str | None:
         return (
             self._encoding
             or self._bom_encoding()
@@ -111,7 +107,7 @@ class TextResponse(Response):
         return urljoin(get_base_url(self), url)
 
     @memoizemethod_noargs
-    def _headers_encoding(self) -> Optional[str]:
+    def _headers_encoding(self) -> str | None:
         content_type = cast(bytes, self.headers.get(b"Content-Type", b""))
         return http_content_type_encoding(to_unicode(content_type, encoding="latin-1"))
 
@@ -130,7 +126,7 @@ class TextResponse(Response):
             self._cached_ubody = ubody
         return self._cached_benc
 
-    def _auto_detect_fun(self, text: bytes) -> Optional[str]:
+    def _auto_detect_fun(self, text: bytes) -> str | None:
         for enc in (self._DEFAULT_ENCODING, "utf-8", "cp1252"):
             try:
                 text.decode(enc)
@@ -140,11 +136,11 @@ class TextResponse(Response):
         return None
 
     @memoizemethod_noargs
-    def _body_declared_encoding(self) -> Optional[str]:
+    def _body_declared_encoding(self) -> str | None:
         return html_body_declared_encoding(self.body)
 
     @memoizemethod_noargs
-    def _bom_encoding(self) -> Optional[str]:
+    def _bom_encoding(self) -> str | None:
         return read_bom(self.body)[0]
 
     @property
@@ -177,19 +173,19 @@ class TextResponse(Response):
 
     def follow(
         self,
-        url: Union[str, Link, parsel.Selector],
-        callback: Optional[Callable] = None,
+        url: str | Link | parsel.Selector,
+        callback: Callable | None = None,
         method: str = "GET",
-        headers: Union[Mapping[AnyStr, Any], Iterable[Tuple[AnyStr, Any]], None] = None,
-        body: Optional[Union[bytes, str]] = None,
-        cookies: Optional[Union[dict, List[dict]]] = None,
-        meta: Optional[Dict[str, Any]] = None,
-        encoding: Optional[str] = None,
+        headers: Mapping[AnyStr, Any] | Iterable[tuple[AnyStr, Any]] | None = None,
+        body: bytes | str | None = None,
+        cookies: dict | list[dict] | None = None,
+        meta: dict[str, Any] | None = None,
+        encoding: str | None = None,
         priority: int = 0,
         dont_filter: bool = False,
-        errback: Optional[Callable] = None,
-        cb_kwargs: Optional[Dict[str, Any]] = None,
-        flags: Optional[List[str]] = None,
+        errback: Callable | None = None,
+        cb_kwargs: dict[str, Any] | None = None,
+        flags: list[str] | None = None,
     ) -> Request:
         """
         Return a :class:`~.Request` instance to follow a link ``url``.
@@ -230,21 +226,21 @@ class TextResponse(Response):
 
     def follow_all(
         self,
-        urls: Union[Iterable[Union[str, Link]], parsel.SelectorList, None] = None,
-        callback: Optional[Callable] = None,
+        urls: Iterable[str | Link] | parsel.SelectorList | None = None,
+        callback: Callable | None = None,
         method: str = "GET",
-        headers: Union[Mapping[AnyStr, Any], Iterable[Tuple[AnyStr, Any]], None] = None,
-        body: Optional[Union[bytes, str]] = None,
-        cookies: Optional[Union[dict, List[dict]]] = None,
-        meta: Optional[Dict[str, Any]] = None,
-        encoding: Optional[str] = None,
+        headers: Mapping[AnyStr, Any] | Iterable[tuple[AnyStr, Any]] | None = None,
+        body: bytes | str | None = None,
+        cookies: dict | list[dict] | None = None,
+        meta: dict[str, Any] | None = None,
+        encoding: str | None = None,
         priority: int = 0,
         dont_filter: bool = False,
-        errback: Optional[Callable] = None,
-        cb_kwargs: Optional[Dict[str, Any]] = None,
-        flags: Optional[List[str]] = None,
-        css: Optional[str] = None,
-        xpath: Optional[str] = None,
+        errback: Callable | None = None,
+        cb_kwargs: dict[str, Any] | None = None,
+        flags: list[str] | None = None,
+        css: str | None = None,
+        xpath: str | None = None,
     ) -> Generator[Request, None, None]:
         """
         A generator that produces :class:`~.Request` instances to follow all

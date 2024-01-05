@@ -3,6 +3,7 @@ Feed Exports extension
 
 See documentation in docs/topics/feed-exports.rst
 """
+from __future__ import annotations
 
 import logging
 import re
@@ -11,7 +12,7 @@ import warnings
 from datetime import datetime, timezone
 from pathlib import Path, PureWindowsPath
 from tempfile import NamedTemporaryFile
-from typing import IO, Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import IO, Any, Callable
 from urllib.parse import unquote, urlparse
 
 from twisted.internet import defer, threads
@@ -55,10 +56,10 @@ class ItemFilter:
     :type feed_options: dict
     """
 
-    feed_options: Optional[dict]
-    item_classes: Tuple
+    feed_options: dict | None
+    item_classes: tuple
 
-    def __init__(self, feed_options: Optional[dict]) -> None:
+    def __init__(self, feed_options: dict | None) -> None:
         self.feed_options = feed_options
         if feed_options is not None:
             self.item_classes = tuple(
@@ -277,7 +278,7 @@ class FTPFeedStorage(BlockingFeedStorage):
         uri: str,
         use_active_mode: bool = False,
         *,
-        feed_options: Optional[Dict[str, Any]] = None,
+        feed_options: dict[str, Any] | None = None,
     ):
         u = urlparse(uri)
         if not u.hostname:
@@ -389,7 +390,7 @@ _FeedSlot = create_deprecated_class(
 
 
 class FeedExporter:
-    _pending_deferreds: List[defer.Deferred] = []
+    _pending_deferreds: list[defer.Deferred] = []
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -660,8 +661,8 @@ class FeedExporter:
     def _get_uri_params(
         self,
         spider: Spider,
-        uri_params_function: Optional[Union[str, Callable[[dict, Spider], dict]]],
-        slot: Optional[FeedSlot] = None,
+        uri_params_function: str | Callable[[dict, Spider], dict] | None,
+        slot: FeedSlot | None = None,
     ) -> dict:
         params = {}
         for k in dir(spider):

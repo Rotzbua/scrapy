@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections import deque
-from typing import Deque, Dict, List, Optional, Tuple
+from typing import Deque
 
 from twisted.internet import defer
 from twisted.internet.base import ReactorBase
@@ -28,13 +30,13 @@ class H2ConnectionPool:
 
         # Store a dictionary which is used to get the respective
         # H2ClientProtocolInstance using the  key as Tuple(scheme, hostname, port)
-        self._connections: Dict[Tuple, H2ClientProtocol] = {}
+        self._connections: dict[tuple, H2ClientProtocol] = {}
 
         # Save all requests that arrive before the connection is established
-        self._pending_requests: Dict[Tuple, Deque[Deferred]] = {}
+        self._pending_requests: dict[tuple, Deque[Deferred]] = {}
 
     def get_connection(
-        self, key: Tuple, uri: URI, endpoint: HostnameEndpoint
+        self, key: tuple, uri: URI, endpoint: HostnameEndpoint
     ) -> Deferred:
         if key in self._pending_requests:
             # Received a request while connecting to remote
@@ -54,7 +56,7 @@ class H2ConnectionPool:
         return self._new_connection(key, uri, endpoint)
 
     def _new_connection(
-        self, key: Tuple, uri: URI, endpoint: HostnameEndpoint
+        self, key: tuple, uri: URI, endpoint: HostnameEndpoint
     ) -> Deferred:
         self._pending_requests[key] = deque()
 
@@ -69,7 +71,7 @@ class H2ConnectionPool:
         self._pending_requests[key].append(d)
         return d
 
-    def put_connection(self, conn: H2ClientProtocol, key: Tuple) -> H2ClientProtocol:
+    def put_connection(self, conn: H2ClientProtocol, key: tuple) -> H2ClientProtocol:
         self._connections[key] = conn
 
         # Now as we have established a proper HTTP/2 connection
@@ -81,7 +83,7 @@ class H2ConnectionPool:
 
         return conn
 
-    def _remove_connection(self, errors: List[BaseException], key: Tuple) -> None:
+    def _remove_connection(self, errors: list[BaseException], key: tuple) -> None:
         self._connections.pop(key)
 
         # Call the errback of all the pending requests for this connection
@@ -107,8 +109,8 @@ class H2Agent:
         reactor: ReactorBase,
         pool: H2ConnectionPool,
         context_factory: BrowserLikePolicyForHTTPS = BrowserLikePolicyForHTTPS(),
-        connect_timeout: Optional[float] = None,
-        bind_address: Optional[bytes] = None,
+        connect_timeout: float | None = None,
+        bind_address: bytes | None = None,
     ) -> None:
         self._reactor = reactor
         self._pool = pool
@@ -122,7 +124,7 @@ class H2Agent:
     def get_endpoint(self, uri: URI):
         return self.endpoint_factory.endpointForURI(uri)
 
-    def get_key(self, uri: URI) -> Tuple:
+    def get_key(self, uri: URI) -> tuple:
         """
         Arguments:
             uri - URI obtained directly from request URL
@@ -149,8 +151,8 @@ class ScrapyProxyH2Agent(H2Agent):
         proxy_uri: URI,
         pool: H2ConnectionPool,
         context_factory: BrowserLikePolicyForHTTPS = BrowserLikePolicyForHTTPS(),
-        connect_timeout: Optional[float] = None,
-        bind_address: Optional[bytes] = None,
+        connect_timeout: float | None = None,
+        bind_address: bytes | None = None,
     ) -> None:
         super().__init__(
             reactor=reactor,
@@ -164,6 +166,6 @@ class ScrapyProxyH2Agent(H2Agent):
     def get_endpoint(self, uri: URI):
         return self.endpoint_factory.endpointForURI(self._proxy_uri)
 
-    def get_key(self, uri: URI) -> Tuple:
+    def get_key(self, uri: URI) -> tuple:
         """We use the proxy uri instead of uri obtained from request url"""
         return "http-proxy", self._proxy_uri.host, self._proxy_uri.port
