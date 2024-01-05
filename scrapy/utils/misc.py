@@ -1,4 +1,6 @@
 """Helper functions which don't fit anywhere else"""
+from __future__ import annotations
+
 import ast
 import hashlib
 import inspect
@@ -11,19 +13,7 @@ from functools import partial
 from importlib import import_module
 from pkgutil import iter_modules
 from types import ModuleType
-from typing import (
-    IO,
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Deque,
-    Generator,
-    Iterable,
-    List,
-    Optional,
-    Union,
-    cast,
-)
+from typing import IO, TYPE_CHECKING, Any, Callable, Deque, Generator, Iterable, cast
 
 from scrapy.exceptions import ScrapyDeprecationWarning
 from scrapy.item import Item
@@ -49,7 +39,7 @@ def arg_to_iter(arg: Any) -> Iterable[Any]:
     return [arg]
 
 
-def load_object(path: Union[str, Callable]) -> Any:
+def load_object(path: str | Callable) -> Any:
     """Load an object given its absolute object path, and return it.
 
     The object can be the import path of a class, function, variable or an
@@ -82,7 +72,7 @@ def load_object(path: Union[str, Callable]) -> Any:
     return obj
 
 
-def walk_modules(path: str) -> List[ModuleType]:
+def walk_modules(path: str) -> list[ModuleType]:
     """Loads a module and all its submodules from the given module path and
     returns them. If *any* module throws an exception while importing, that
     exception is thrown back.
@@ -90,7 +80,7 @@ def walk_modules(path: str) -> List[ModuleType]:
     For example: walk_modules('scrapy.utils')
     """
 
-    mods: List[ModuleType] = []
+    mods: list[ModuleType] = []
     mod = import_module(path)
     mods.append(mod)
     if hasattr(mod, "__path__"):
@@ -121,7 +111,7 @@ def md5sum(file: IO) -> str:
     return m.hexdigest()
 
 
-def rel_has_nofollow(rel: Optional[str]) -> bool:
+def rel_has_nofollow(rel: str | None) -> bool:
     """Return True if link rel attribute has nofollow type"""
     return rel is not None and "nofollow" in rel.replace(",", " ").split()
 
@@ -281,7 +271,7 @@ def is_generator_with_return_value(callable: Callable) -> bool:
     return bool(_generator_callbacks_cache[callable])
 
 
-def warn_on_generator_with_return_value(spider: "Spider", callable: Callable) -> None:
+def warn_on_generator_with_return_value(spider: Spider, callable: Callable) -> None:
     """
     Logs a warning if a callable is a generator function and includes
     a 'return' statement with a value different than None

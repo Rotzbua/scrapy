@@ -1,6 +1,8 @@
 """
 Helper functions for dealing with Twisted deferreds
 """
+from __future__ import annotations
+
 import asyncio
 import inspect
 from asyncio import Future
@@ -14,13 +16,9 @@ from typing import (
     Awaitable,
     Callable,
     Coroutine,
-    Dict,
     Generator,
     Iterable,
     Iterator,
-    List,
-    Optional,
-    Tuple,
     TypeVar,
     Union,
     cast,
@@ -158,11 +156,11 @@ class _AsyncCooperatorAdapter(Iterator):
     ):
         self.aiterator: AsyncIterator = aiterable.__aiter__()
         self.callable: Callable = callable
-        self.callable_args: Tuple[Any, ...] = callable_args
-        self.callable_kwargs: Dict[str, Any] = callable_kwargs
+        self.callable_args: tuple[Any, ...] = callable_args
+        self.callable_kwargs: dict[str, Any] = callable_kwargs
         self.finished: bool = False
-        self.waiting_deferreds: List[Deferred] = []
-        self.anext_deferred: Optional[Deferred] = None
+        self.waiting_deferreds: list[Deferred] = []
+        self.anext_deferred: Deferred | None = None
 
     def _callback(self, result: Any) -> None:
         # This gets called when the result from aiterator.__anext__() is available.
@@ -313,7 +311,7 @@ def deferred_from_coro(o: _T) -> _T:
     ...
 
 
-def deferred_from_coro(o: _T) -> Union[Deferred, _T]:
+def deferred_from_coro(o: _T) -> Deferred | _T:
     """Converts a coroutine into a Deferred, or returns the object as is if it isn't a coroutine"""
     if isinstance(o, Deferred):
         return o
@@ -380,7 +378,7 @@ def deferred_to_future(d: Deferred) -> Future:
     return d.asFuture(_get_asyncio_event_loop())
 
 
-def maybe_deferred_to_future(d: Deferred) -> Union[Deferred, Future]:
+def maybe_deferred_to_future(d: Deferred) -> Deferred | Future:
     """
     .. versionadded:: 2.6.0
 
